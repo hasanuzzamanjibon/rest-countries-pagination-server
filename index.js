@@ -5,7 +5,6 @@ const port = process.env.PORT || 3000;
 const cors = require("cors");
 
 app.use(express.json());
-// var allowlist = ["http://localhost:5173/"];
 
 app.use(cors());
 
@@ -34,22 +33,32 @@ const run = async () => {
     const CountryCollection = client.db("Country").collection("CountryDB");
 
     app.get("/allCountries", async (req, res) => {
-      const result = await CountryCollection.countDocuments({ region: "Oceania" });
-      res.send({ totalProducts: result });
+      let region = req.query?.region;
+      let query = {};
+      if (req.query?.region) {
+        query = { region: region };
+      }
+      const result = await CountryCollection.find(query).toArray();
+      res.send({ result, totalProducts: result.length });
     });
 
     // get all countries
     app.get("/api/allcountries", async (req, res) => {
-      const page = parseInt(req?.query?.page);
+      let region = req.query?.region;
+      const page = parseInt(req?.query?.page) - 1 || 0;
       const limit = parseInt(req?.query?.items);
-      console.log(page, limit);
       const skip = page * limit;
 
-      const result = await CountryCollection.find({ region: "Oceania" })
-        .skip(skip)
-        .limit(limit)
-        .toArray();
-      res.send(result);
+      let query = {};
+      if (region) {
+        query = { region: region };
+        const result = await CountryCollection.find(query).skip(skip).limit(limit).toArray();
+        res.send(result);
+      } else {
+        query = {};
+        const result = await CountryCollection.find(query).skip(skip).limit(limit).toArray();
+        res.send(result);
+      }
     });
   } catch (err) {
     // Ensures that the client will close when you finish/error
