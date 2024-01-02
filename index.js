@@ -32,19 +32,10 @@ const run = async () => {
 
     const CountryCollection = client.db("Country").collection("CountryDB");
 
-    app.get("/allCountries", async (req, res) => {
-      let region = req.query?.region;
-      let query = {};
-      if (req.query?.region) {
-        query = { region: region };
-      }
-      const result = await CountryCollection.find(query).toArray();
-      res.send({ result, totalProducts: result.length });
-    });
-
     // get all countries
     app.get("/api/allcountries", async (req, res) => {
       let region = req.query?.region;
+      let subRegion = req.query?.subregion;
       const page = parseInt(req?.query?.page) - 1 || 0;
       const limit = parseInt(req?.query?.items);
       const skip = page * limit;
@@ -52,12 +43,34 @@ const run = async () => {
       let query = {};
       if (region) {
         query = { region: region };
+        console.log("1");
+        const totalProducts = await CountryCollection.countDocuments(query);
         const result = await CountryCollection.find(query).skip(skip).limit(limit).toArray();
-        res.send(result);
+        const regionResult = await CountryCollection.find().toArray();
+        console.log(totalProducts);
+        res.send({ totalProducts, regionResult, result });
+      } else if (subRegion) {
+        console.log("2");
+   
+        const totalProducts = await CountryCollection.countDocuments({
+          subregion: { $regex: subRegion, $options: "i" },
+        });
+        const result = await CountryCollection.find({
+          subregion: { $regex: subRegion, $options: "i" },
+        })
+          .skip(skip)
+          .limit(limit)
+          .toArray();
+        const regionResult = await CountryCollection.find().toArray();
+        console.log(totalProducts);
+        res.send({ totalProducts, regionResult, result });
       } else {
-        query = {};
-        const result = await CountryCollection.find(query).skip(skip).limit(limit).toArray();
-        res.send(result);
+        console.log("3");
+        const totalProducts = await CountryCollection.countDocuments();
+        const result = await CountryCollection.find({}).skip(skip).limit(limit).toArray();
+        const regionResult = await CountryCollection.find().toArray();
+        console.log(totalProducts);
+        res.send({ totalProducts, regionResult, result });
       }
     });
   } catch (err) {
