@@ -36,22 +36,19 @@ const run = async () => {
     app.get("/api/allcountries", async (req, res) => {
       let region = req.query?.region;
       let subRegion = req.query?.subregion;
-      const page = parseInt(req?.query?.page) - 1 || 0;
-      const limit = parseInt(req?.query?.items);
+      const page = parseInt(req.query?.page) - 1 || 0;
+      const limit = parseInt(req.query?.items);
       const skip = page * limit;
 
       let query = {};
       if (region) {
         query = { region: region };
-        console.log("1");
         const totalProducts = await CountryCollection.countDocuments(query);
         const result = await CountryCollection.find(query).skip(skip).limit(limit).toArray();
         const regionResult = await CountryCollection.find().toArray();
         console.log(totalProducts);
         res.send({ totalProducts, regionResult, result });
       } else if (subRegion) {
-        console.log("2");
-   
         const totalProducts = await CountryCollection.countDocuments({
           subregion: { $regex: subRegion, $options: "i" },
         });
@@ -65,7 +62,6 @@ const run = async () => {
         console.log(totalProducts);
         res.send({ totalProducts, regionResult, result });
       } else {
-        console.log("3");
         const totalProducts = await CountryCollection.countDocuments();
         const result = await CountryCollection.find({}).skip(skip).limit(limit).toArray();
         const regionResult = await CountryCollection.find().toArray();
