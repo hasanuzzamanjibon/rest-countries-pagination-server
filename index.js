@@ -39,14 +39,12 @@ const run = async () => {
       const page = parseInt(req.query?.page) - 1 || 0;
       const limit = parseInt(req.query?.items);
       const skip = page * limit;
-
       let query = {};
       if (region) {
         query = { region: region };
         const totalProducts = await CountryCollection.countDocuments(query);
         const result = await CountryCollection.find(query).skip(skip).limit(limit).toArray();
         const regionResult = await CountryCollection.find().toArray();
-        console.log(totalProducts);
         res.send({ totalProducts, regionResult, result });
       } else if (subRegion) {
         const totalProducts = await CountryCollection.countDocuments({
@@ -59,19 +57,17 @@ const run = async () => {
           .limit(limit)
           .toArray();
         const regionResult = await CountryCollection.find().toArray();
-        console.log(totalProducts);
         res.send({ totalProducts, regionResult, result });
       } else {
         const totalProducts = await CountryCollection.countDocuments();
         const result = await CountryCollection.find({}).skip(skip).limit(limit).toArray();
         const regionResult = await CountryCollection.find().toArray();
-        console.log(totalProducts);
         res.send({ totalProducts, regionResult, result });
       }
     });
   } catch (err) {
     // Ensures that the client will close when you finish/error
-    console.log(err);
+    console.error(err);
   }
 };
 run().catch(console.dir);
